@@ -1491,26 +1491,21 @@ function animate(){
 
   smoothProgress += (targetProgress - smoothProgress) * 0.08;
 
-  // camera — on narrow/portrait screens pull back enough that the WHOLE car
-  // stays on screen at every scroll frame / rotation (no fisheye FOV boost)
+  // camera (=== original keyframe behavior, unchanged for desktop)
   const cf = cameraForProgress(smoothProgress);
   camera.position.set(cf.pos[0], cf.pos[1], cf.pos[2]);
   lookTarget.set(cf.look[0], cf.look[1], cf.look[2]);
-
-  let dist = camera.position.distanceTo(lookTarget);
-  const asp = camera.aspect;
-  if (asp < 1.2){                       // mild natural pull-back on portrait
-    dist *= 1 + (1.2 - asp) * 0.35;
-  }
-  if (carFitRadius && asp < 1.5){
-    const halfH = Math.tan(THREE.MathUtils.degToRad(cf.fov * 0.5));
-    const need  = (carFitRadius * 1.18) / (halfH * asp);   // fit horizontally
-    if (dist < need) dist = need;
-  }
-  camera.position.copy(lookTarget)
-                  .addScaledVector(
-                    camera.position.clone().sub(lookTarget).normalize(), dist);
   camera.fov = cf.fov;
+  // mobile correction: ONLY in portrait, pull back enough that the whole car
+  // fits on screen at every scroll frame / rotation (desktop skipped entirely)
+  if (camera.aspect < 1 && carFitRadius){
+    const dir = camera.position.clone().sub(lookTarget).normalize();
+    let dist = camera.position.distanceTo(lookTarget);
+    const halfH = Math.tan(THREE.MathUtils.degToRad(camera.fov * 0.5));
+    const need = (carFitRadius * 1.18) / (halfH * camera.aspect);
+    if (dist < need) dist = need;
+    camera.position.copy(lookTarget).addScaledVector(dir, dist);
+  }
   camera.lookAt(lookTarget);
   camera.updateProjectionMatrix();
 
