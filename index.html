@@ -219,6 +219,30 @@
     margin-top:4px;
   }
   .insta-handle strong{ color:var(--f1red); font-weight:700; }
+  .hl{ color:var(--f1red); font-style:normal; }
+  .insta-link{
+    display:inline-flex;
+    align-items:center;
+    gap:10px;
+    margin-top:30px;
+    padding:11px 18px;
+    border:1px solid var(--hairline);
+    background:rgba(10,11,14,0.5);
+    backdrop-filter:blur(6px);
+    color:var(--chalk);
+    font-family:'JetBrains Mono', monospace;
+    font-size:12px;
+    letter-spacing:0.12em;
+    text-transform:uppercase;
+    text-decoration:none;
+    transition:border-color 0.25s ease, color 0.25s ease;
+  }
+  .insta-link svg{
+    width:16px; height:16px;
+    color:var(--f1red);
+    flex:none;
+  }
+  .insta-link:hover{ border-color:var(--f1red); color:var(--f1red); }
 
   /* ---------- FOOTER ---------- */
   #outro{
@@ -416,8 +440,8 @@
 
   <section class="section-content" data-section="About" data-hud="About_02">
     <div class="section-tag">01 — OVERVIEW</div>
-    <h2>PAVAN KUMAR</h2>
-    <p>2nd Year B.Tech CSE student at NRI Institute of Technology. Driven by curiosity in software engineering, modern web tech, and creative digital media.</p>
+    <h2>THE SHOWCASE</h2>
+    <p>2nd Year B.Tech CSE student at <em class="hl">NRI</em> Institute of Technology. Driven by curiosity in software engineering, modern web tech, and creative digital media.</p>
     <div class="stats-grid">
       <div class="stat-item"><span class="stat-number">2nd</span><span class="stat-label">YEAR B.TECH</span></div>
       <div class="stat-item"><span class="stat-number">CSE</span><span class="stat-label">DEPARTMENT</span></div>
@@ -437,32 +461,44 @@
   </section>
 
   <section class="section-content" data-section="Creative" data-hud="Creative_04">
-    <div class="section-tag">03 — CREATIVE ARTS</div>
-    <h2>PHOTOGRAPHY &amp; CINEMA</h2>
-    <p>Capturing raw visual frames through camera lenses and analyzing cinematic storytelling, color grading, and screenwriting in movies and series.</p>
+    <div class="section-tag">03 — WEB CREATION</div>
+    <h2>FROM BLENDER TO BROWSER</h2>
+    <p>Every page like this one starts in Blender — modeling, materials and VFX lighting — then gets exported to a GLB, animated with Three.js, and hosted so anyone can scroll through it.</p>
     <div class="stats-grid">
-      <div class="stat-item"><span class="stat-number">RAW</span><span class="stat-label">PHOTOGRAPHY</span></div>
-      <div class="stat-item"><span class="stat-number">CINE</span><span class="stat-label">FILM &amp; SERIES</span></div>
-      <div class="stat-item"><span class="stat-number">SMILE</span><span class="stat-label">SPIDER-MAN FAN</span></div>
+      <div class="stat-item"><span class="stat-number">BLND</span><span class="stat-label">BLENDER VFX</span></div>
+      <div class="stat-item"><span class="stat-number">GLB</span><span class="stat-label">3D CONVERT</span></div>
+      <div class="stat-item"><span class="stat-number">WEB</span><span class="stat-label">THREE.JS CODE</span></div>
+      <div class="stat-item"><span class="stat-number">HOST</span><span class="stat-label">GO-LIVE DEPLOY</span></div>
     </div>
   </section>
 
   <section class="section-content align-right" data-section="Perspective" data-hud="Perspective_05">
     <div class="section-tag">04 — PERSPECTIVE</div>
     <h2>GREAT POWER, GREAT RESPONSIBILITY</h2>
-    <p>“Whatever comes our way, whatever battle we have raging inside us, we always have a choice.” Balancing engineering logic with artistic passion.</p>
+    <p>“Great power comes with great responsibility.” Whatever battle rages inside, always keep smiling in any situation — balancing engineering logic with artistic passion.</p>
     <div class="stats-grid">
-      <div class="stat-item"><span class="stat-number">4K</span><span class="stat-label">VISUAL EYE</span></div>
+      <div class="stat-item"><span class="stat-number">SMILE</span><span class="stat-label">IN ANY SITUATION</span></div>
       <div class="stat-item"><span class="stat-number">DEV</span><span class="stat-label">CREATIVE CODE</span></div>
       <div class="stat-item"><span class="stat-number">∞</span><span class="stat-label">LEARNING</span></div>
     </div>
+    <a class="insta-link" href="https://www.instagram.com/pavan__99123" target="_blank" rel="noopener">
+      <svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
+        <path d="M8 0C5.829 0 5.556.01 4.703.048 3.85.088 3.269.222 2.76.42a3.917 3.917 0 0 0-1.417.923A3.927 3.927 0 0 0 .42 2.76C.222 3.268.087 3.85.048 4.7.01 5.555 0 5.827 0 8.001c0 2.172.01 2.444.048 3.297.04.852.174 1.433.372 1.942.205.526.478.972.923 1.417.444.445.89.719 1.416.923.51.198 1.09.333 1.942.372C5.555 15.99 5.827 16 8 16s2.444-.01 3.298-.048c.851-.04 1.434-.174 1.943-.372a3.916 3.916 0 0 0 1.416-.923c.445-.445.718-.891.923-1.417.197-.509.332-1.09.372-1.942C15.99 10.445 16 10.173 16 8s-.01-2.445-.048-3.299c-.04-.851-.175-1.433-.372-1.941a3.926 3.926 0 0 0-.923-1.417A3.911 3.911 0 0 0 13.24.42c-.51-.198-1.092-.333-1.943-.372C10.443.01 10.172 0 7.998 0h.003zm-.717 1.442h.718c2.136 0 2.389.007 3.232.046.78.035 1.204.166 1.486.275.373.145.64.319.92.599.28.28.453.546.598.92.11.281.24.705.275 1.485.039.843.047 1.096.047 3.231s-.008 2.389-.047 3.232c-.035.78-.166 1.203-.275 1.485a2.47 2.47 0 0 1-.599.919c-.28.28-.546.453-.92.598-.28.11-.704.24-1.485.276-.843.038-1.096.047-3.232.047s-2.39-.009-3.233-.047c-.78-.036-1.203-.166-1.485-.276a2.478 2.478 0 0 1-.92-.598 2.48 2.48 0 0 1-.6-.92c-.109-.281-.24-.705-.275-1.485-.038-.843-.046-1.096-.046-3.233 0-2.136.008-2.388.046-3.231.036-.78.166-1.204.276-1.486.145-.373.319-.64.599-.92.28-.28.546-.453.92-.598.282-.11.705-.24 1.485-.276.738-.034 1.024-.044 2.515-.045v.002zm4.988 1.328a.96.96 0 1 0 0 1.92.96.96 0 0 0 0-1.92zm-4.27 1.122a4.109 4.109 0 1 0 0 8.217 4.109 4.109 0 0 0 0-8.217zm0 1.441a2.667 2.667 0 1 1 0 5.334 2.667 2.667 0 0 1 0-5.334z"/>
+      </svg>
+      @pavan__99123
+    </a>
   </section>
 
   <section id="outro" class="footer-content" data-hud="Connect_06">
     <div class="section-tag">CONNECT</div>
     <h1 class="hero-title">PAVAN KUMAR</h1>
     <p class="outro-sub">STUDENT · DEVELOPER · VISUAL CREATIVE</p>
-    <p class="insta-handle">INSTAGRAM: <strong>@pavan__99123</strong></p>
+    <a class="insta-link" href="https://www.instagram.com/pavan__99123" target="_blank" rel="noopener">
+      <svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
+        <path d="M8 0C5.829 0 5.556.01 4.703.048 3.85.088 3.269.222 2.76.42a3.917 3.917 0 0 0-1.417.923A3.927 3.927 0 0 0 .42 2.76C.222 3.268.087 3.85.048 4.7.01 5.555 0 5.827 0 8.001c0 2.172.01 2.444.048 3.297.04.852.174 1.433.372 1.942.205.526.478.972.923 1.417.444.445.89.719 1.416.923.51.198 1.09.333 1.942.372C5.555 15.99 5.827 16 8 16s2.444-.01 3.298-.048c.851-.04 1.434-.174 1.943-.372a3.916 3.916 0 0 0 1.416-.923c.445-.445.718-.891.923-1.417.197-.509.332-1.09.372-1.942C15.99 10.445 16 10.173 16 8s-.01-2.445-.048-3.299c-.04-.851-.175-1.433-.372-1.941a3.926 3.926 0 0 0-.923-1.417A3.911 3.911 0 0 0 13.24.42c-.51-.198-1.092-.333-1.943-.372C10.443.01 10.172 0 7.998 0h.003zm-.717 1.442h.718c2.136 0 2.389.007 3.232.046.78.035 1.204.166 1.486.275.373.145.64.319.92.599.28.28.453.546.598.92.11.281.24.705.275 1.485.039.843.047 1.096.047 3.231s-.008 2.389-.047 3.232c-.035.78-.166 1.203-.275 1.485a2.47 2.47 0 0 1-.599.919c-.28.28-.546.453-.92.598-.28.11-.704.24-1.485.276-.843.038-1.096.047-3.232.047s-2.39-.009-3.233-.047c-.78-.036-1.203-.166-1.485-.276a2.478 2.478 0 0 1-.92-.598 2.48 2.48 0 0 1-.6-.92c-.109-.281-.24-.705-.275-1.485-.038-.843-.046-1.096-.046-3.233 0-2.136.008-2.388.046-3.231.036-.78.166-1.204.276-1.486.145-.373.319-.64.599-.92.28-.28.546-.453.92-.598.282-.11.705-.24 1.485-.276.738-.034 1.024-.044 2.515-.045v.002zm4.988 1.328a.96.96 0 1 0 0 1.92.96.96 0 0 0 0-1.92zm-4.27 1.122a4.109 4.109 0 1 0 0 8.217 4.109 4.109 0 0 0 0-8.217zm0 1.441a2.667 2.667 0 1 1 0 5.334 2.667 2.667 0 0 1 0-5.334z"/>
+      </svg>
+      @pavan__99123
+    </a>
   </section>
 
 </div>
@@ -955,8 +991,10 @@ function stripStageProps(root){
 
 /* ---------------- renderer / scene ---------------- */
 const wrap = document.getElementById('canvas-wrap');
+const MOBILE_UI = window.matchMedia('(max-width:720px), (max-height:480px)').matches;
+const MAX_PIXEL_RATIO = MOBILE_UI ? 1.6 : 2;
 const renderer = new THREE.WebGLRenderer({ antialias:true, alpha:false, powerPreference:'high-performance' });
-renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, MAX_PIXEL_RATIO));
 renderer.setSize(window.innerWidth, window.innerHeight);
 renderer.outputColorSpace = THREE.SRGBColorSpace;
 renderer.toneMapping = THREE.ACESFilmicToneMapping;
@@ -1267,6 +1305,12 @@ gltfLoader.load(
     applyLiveryTextures(carRoot);
     addSponsorDecals(carRoot);
 
+    // bounding sphere of the whole car (world space) — used on narrow
+    // screens to guarantee the car fits on screen at every scroll frame
+    const fitSphere = new THREE.Sphere();
+    box2.getBoundingSphere(fitSphere);
+    carFitRadius = fitSphere.radius;
+
     loaderEl.style.opacity = '0';
     setTimeout(() => loaderEl.style.display = 'none', 650);
   },
@@ -1430,6 +1474,8 @@ autoToggle.addEventListener('click', () => setAuto(!autoOn));
 window.addEventListener('resize', () => {
   camera.aspect = window.innerWidth / window.innerHeight;
   camera.updateProjectionMatrix();
+  const pr = MOBILE_UI ? 1.6 : 2;
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, pr));
   renderer.setSize(window.innerWidth, window.innerHeight);
   composer.setSize(window.innerWidth, window.innerHeight);
   bloom.setSize(window.innerWidth, window.innerHeight);
@@ -1438,21 +1484,33 @@ window.addEventListener('resize', () => {
 /* ---------------- render loop ---------------- */
 const lookTarget = new THREE.Vector3(0,0.6,0);
 let idleT = 0;
+let carFitRadius = 0;   // set once the model has loaded
 
 function animate(){
   requestAnimationFrame(animate);
 
   smoothProgress += (targetProgress - smoothProgress) * 0.08;
 
-  // camera (on narrow/portrait screens, pull back + widen so the whole car fits)
+  // camera — on narrow/portrait screens pull back enough that the WHOLE car
+  // stays on screen at every scroll frame / rotation (no fisheye FOV boost)
   const cf = cameraForProgress(smoothProgress);
   camera.position.set(cf.pos[0], cf.pos[1], cf.pos[2]);
   lookTarget.set(cf.look[0], cf.look[1], cf.look[2]);
-  const sess = Math.min(1.333, camera.aspect);           // 1.333 = desktop 4:3 baseline
-  const pull = 1 + (1.333 - sess) * 0.9;
-  const d = camera.position.clone().sub(lookTarget);
-  camera.position.addScaledVector(d.normalize(), d.length() * (pull - 1));
-  camera.fov = cf.fov * (1 + (1.333 - sess) * 0.22);
+
+  let dist = camera.position.distanceTo(lookTarget);
+  const asp = camera.aspect;
+  if (asp < 1.2){                       // mild natural pull-back on portrait
+    dist *= 1 + (1.2 - asp) * 0.35;
+  }
+  if (carFitRadius && asp < 1.5){
+    const halfH = Math.tan(THREE.MathUtils.degToRad(cf.fov * 0.5));
+    const need  = (carFitRadius * 1.18) / (halfH * asp);   // fit horizontally
+    if (dist < need) dist = need;
+  }
+  camera.position.copy(lookTarget)
+                  .addScaledVector(
+                    camera.position.clone().sub(lookTarget).normalize(), dist);
+  camera.fov = cf.fov;
   camera.lookAt(lookTarget);
   camera.updateProjectionMatrix();
 
