@@ -1,0 +1,1480 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>PAVAN — F1 Model Showcase</title>
+<style>
+  :root{
+    --asphalt:#0b0d10;
+    --carbon:#15171c;
+    --carbon-2:#1c1f26;
+    --f1red:#e10600;
+    --titanium:#8b8f94;
+    --chalk:#f2f3f5;
+    --gold:#c9a227;
+    --hairline:rgba(242,243,245,0.09);
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  html{scroll-behavior:smooth;}
+  body{
+    background:var(--asphalt);
+    color:var(--chalk);
+    font-family:'Inter', sans-serif;
+    overflow-x:hidden;
+  }
+  #canvas-wrap{
+    position:fixed;
+    inset:0;
+    width:100vw;
+    height:100vh;
+    height:100dvh;
+    z-index:1;
+  }
+  #canvas-wrap canvas{display:block;}
+
+  /* subtle vignette + grain over the render */
+  .vignette{
+    position:fixed; inset:0; z-index:2; pointer-events:none;
+    background:radial-gradient(ellipse at center, rgba(0,0,0,0) 40%, rgba(0,0,0,0.55) 100%);
+  }
+
+  .content{
+    position:relative;
+    z-index:3;
+  }
+
+  section{
+    min-height:100vh;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    padding: 0 8vw;
+    position:relative;
+  }
+
+  /* ---------- HERO ---------- */
+  #hero{
+    justify-content:space-between;
+    padding-top:6vh;
+    padding-bottom:6vh;
+  }
+  .eyebrow{
+    font-family:'JetBrains Mono', monospace;
+    font-size:12px;
+    letter-spacing:0.28em;
+    text-transform:uppercase;
+    color:var(--f1red);
+    display:flex;
+    align-items:center;
+    gap:10px;
+  }
+  .eyebrow::before{
+    content:"";
+    width:22px; height:2px;
+    background:var(--f1red);
+    display:inline-block;
+  }
+  .hero-name{
+    font-family:'Anton', sans-serif;
+    font-weight:400;
+    font-size:clamp(64px, 15vw, 190px);
+    line-height:0.86;
+    letter-spacing:0.01em;
+    text-transform:uppercase;
+    color:var(--chalk);
+    text-shadow: 0 0 60px rgba(0,0,0,0.4);
+  }
+  .hero-name em{
+    font-style:normal;
+    color:transparent;
+    -webkit-text-stroke:1.5px var(--chalk);
+  }
+  .hero-sub{
+    font-family:'Inter', sans-serif;
+    font-size:clamp(14px, 1.6vw, 18px);
+    color:var(--titanium);
+    max-width:36ch;
+    margin-top:18px;
+    line-height:1.5;
+  }
+  .scroll-cue{
+    align-self:flex-start;
+    font-family:'JetBrains Mono', monospace;
+    font-size:11px;
+    letter-spacing:0.2em;
+    text-transform:uppercase;
+    color:var(--titanium);
+    display:flex;
+    align-items:center;
+    gap:12px;
+  }
+  .scroll-cue .bar{
+    width:1px; height:34px;
+    background:linear-gradient(var(--f1red), transparent);
+    animation:pulse-bar 1.8s ease-in-out infinite;
+  }
+  @keyframes pulse-bar{
+    0%,100%{opacity:0.25; transform:scaleY(0.7); transform-origin:top;}
+    50%{opacity:1; transform:scaleY(1); transform-origin:top;}
+  }
+
+  /* ---------- DATA SECTIONS ---------- */
+  .section-content{
+    align-items:flex-start;
+  }
+  .section-content.align-right{
+    align-items:flex-end;
+    text-align:right;
+  }
+  .section-tag{
+    font-family:'JetBrains Mono', monospace;
+    font-size:13px;
+    color:var(--f1red);
+    letter-spacing:0.2em;
+    margin-bottom:14px;
+  }
+  .section-content h2{
+    font-family:'Anton', sans-serif;
+    font-weight:400;
+    text-transform:uppercase;
+    font-size:clamp(34px, 5.4vw, 72px);
+    line-height:0.95;
+    max-width:16ch;
+  }
+  .section-content p{
+    font-family:'Inter', sans-serif;
+    font-size:clamp(14px, 1.5vw, 17px);
+    color:var(--titanium);
+    max-width:42ch;
+    margin-top:20px;
+    line-height:1.6;
+  }
+  .stats-grid{
+    display:flex;
+    gap:36px;
+    margin-top:36px;
+    flex-wrap:wrap;
+  }
+  .section-content.align-right .stats-grid{
+    justify-content:flex-end;
+  }
+  .stat-item{
+    border-left:2px solid var(--hairline);
+    padding-left:16px;
+  }
+  .section-content.align-right .stat-item{
+    border-left:none;
+    border-right:2px solid var(--hairline);
+    padding-left:0;
+    padding-right:16px;
+  }
+  .stat-number{
+    font-family:'JetBrains Mono', monospace;
+    font-size:clamp(22px, 3vw, 34px);
+    color:var(--chalk);
+    font-weight:700;
+  }
+  .stat-label{
+    font-family:'JetBrains Mono', monospace;
+    font-size:10px;
+    letter-spacing:0.14em;
+    text-transform:uppercase;
+    color:var(--titanium);
+    margin-top:6px;
+  }
+
+  /* ---------- SCROLL REVEAL ---------- */
+  .section-content, .footer-content{
+    opacity:0;
+    transform:translateY(40px);
+    transition:opacity 0.8s cubic-bezier(0.16,1,0.3,1),
+               transform 0.8s cubic-bezier(0.16,1,0.3,1);
+    will-change:opacity, transform;
+  }
+  .section-content.is-visible, .footer-content.is-visible{
+    opacity:1;
+    transform:translateY(0);
+  }
+  .footer-content{
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    text-align:center;
+  }
+  .hero-title{
+    font-family:'Anton', sans-serif;
+    font-weight:400;
+    text-transform:uppercase;
+    font-size:clamp(48px, 9vw, 130px);
+    line-height:0.9;
+    color:var(--chalk);
+  }
+  .insta-handle{
+    font-family:'JetBrains Mono', monospace;
+    font-size:12px;
+    letter-spacing:0.22em;
+    text-transform:uppercase;
+    color:var(--titanium);
+    margin-top:4px;
+  }
+  .insta-handle strong{ color:var(--f1red); font-weight:700; }
+
+  /* ---------- FOOTER ---------- */
+  #outro{
+    align-items:center;
+    text-align:center;
+    justify-content:center;
+  }
+  .outro-title{
+    font-family:'Anton', sans-serif;
+    font-size:clamp(40px, 8vw, 110px);
+    text-transform:uppercase;
+    line-height:0.9;
+  }
+  .outro-sub{
+    font-family:'JetBrains Mono', monospace;
+    font-size:12px;
+    letter-spacing:0.2em;
+    text-transform:uppercase;
+    color:var(--titanium);
+    margin-top:22px;
+  }
+  .outro-sub .accent{color:var(--f1red);}
+
+  /* ---------- TELEMETRY HUD (signature element) ---------- */
+  #hud{
+    position:fixed;
+    left:28px;
+    bottom:28px;
+    z-index:5;
+    display:flex;
+    align-items:flex-end;
+    gap:16px;
+    font-family:'JetBrains Mono', monospace;
+    pointer-events:none;
+  }
+  #hud .dial{
+    width:78px; height:78px;
+  }
+  #hud .readout{
+    padding-bottom:6px;
+  }
+  #hud .readout .label{
+    font-size:9px;
+    letter-spacing:0.18em;
+    color:var(--titanium);
+    text-transform:uppercase;
+  }
+  #hud .readout .value{
+    font-size:22px;
+    color:var(--chalk);
+    font-weight:700;
+    margin-top:2px;
+  }
+  #hud .readout .value span{
+    font-size:11px;
+    color:var(--f1red);
+    margin-left:2px;
+  }
+
+  #progress-rail{
+    position:fixed;
+    right:28px;
+    top:50%;
+    transform:translateY(-50%);
+    z-index:5;
+    width:2px;
+    height:180px;
+    background:var(--hairline);
+    pointer-events:none;
+  }
+  #progress-fill{
+    width:100%;
+    background:var(--f1red);
+    height:0%;
+    transition:height 0.05s linear;
+  }
+
+  #auto-toggle,#sound-toggle{
+    position:fixed;
+    right:26px;
+    z-index:30;
+    padding:11px 18px;
+    border:1px solid var(--hairline);
+    background:rgba(10,11,14,0.62);
+    backdrop-filter:blur(6px);
+    color:var(--chalk);
+    font-family:'JetBrains Mono', monospace;
+    font-size:11px;
+    letter-spacing:0.22em;
+    text-transform:uppercase;
+    cursor:pointer;
+    transition:border-color 0.25s ease, color 0.25s ease, background 0.25s ease;
+  }
+  #auto-toggle{ bottom:22px; }
+  #sound-toggle{ bottom:64px; }
+  #auto-toggle:hover,#sound-toggle:hover{ border-color:var(--f1red); color:var(--f1red); }
+  #auto-toggle.on,#sound-toggle.on{
+    background:var(--f1red);
+    border-color:var(--f1red);
+    color:#fff;
+  }
+
+  #loader{
+    position:fixed; inset:0; z-index:50;
+    background:var(--asphalt);
+    display:flex; align-items:center; justify-content:center;
+    flex-direction:column;
+    gap:18px;
+    transition:opacity 0.6s ease;
+  }
+  #loader .loader-text{
+    font-family:'JetBrains Mono', monospace;
+    font-size:11px;
+    letter-spacing:0.24em;
+    text-transform:uppercase;
+    color:var(--titanium);
+  }
+  #loader .loader-bar{
+    width:220px; height:2px;
+    background:var(--hairline);
+    overflow:hidden;
+  }
+  #loader .loader-bar-fill{
+    height:100%; width:0%;
+    background:var(--f1red);
+    transition:width 0.2s ease;
+  }
+
+  @media (max-width:720px){
+    section{padding:0 6vw;}
+    #hud{left:14px; bottom:16px;}
+    #hud .dial{width:58px; height:58px;}
+    #progress-rail{display:none;}
+    .stats-grid{gap:22px; margin-top:30px;}
+    .stat-item{min-width:38vw;}
+    #auto-toggle,#sound-toggle{right:16px; padding:10px 14px; font-size:10px;}
+    .insta-handle{letter-spacing:0.12em;}
+    .section-content p{max-width:100%;}
+  }
+
+  @media (max-width:420px){
+    #auto-toggle,#sound-toggle{left:16px; right:16px;}
+    #sound-toggle{bottom:70px;}
+    .stat-item{min-width:100%;}
+    .stats-grid{gap:18px;}
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    html{scroll-behavior:auto;}
+    .scroll-cue .bar{animation:none;}
+  }
+</style>
+</head>
+<body>
+
+<div id="loader">
+  <div class="loader-text">LOADING CAR MODEL</div>
+  <div class="loader-bar"><div class="loader-bar-fill" id="loader-fill"></div></div>
+</div>
+
+<div id="canvas-wrap"></div>
+<div class="vignette"></div>
+
+<div id="hud">
+  <svg class="dial" viewBox="0 0 100 100">
+    <circle cx="50" cy="50" r="42" fill="none" stroke="var(--hairline)" stroke-width="3"/>
+    <circle id="dial-arc" cx="50" cy="50" r="42" fill="none" stroke="var(--f1red)" stroke-width="3"
+      stroke-dasharray="264" stroke-dashoffset="264" stroke-linecap="round"
+      transform="rotate(-90 50 50)"/>
+    <text x="50" y="46" text-anchor="middle" fill="var(--chalk)" font-family="JetBrains Mono" font-size="18" font-weight="700" id="dial-num">0</text>
+    <text x="50" y="62" text-anchor="middle" fill="var(--titanium)" font-family="JetBrains Mono" font-size="8" letter-spacing="1">SCROLL %</text>
+  </svg>
+  <div class="readout">
+    <div class="label">Current View</div>
+    <div class="value" id="hud-section">Showroom<span>_01</span></div>
+  </div>
+</div>
+
+<div id="progress-rail"><div id="progress-fill"></div></div>
+
+<button id="auto-toggle" type="button">AUTO TOUR</button>
+<button id="sound-toggle" type="button">MUTE</button>
+
+<audio id="tokyoSound" src="f1_web_car/assets/audio/tokyo_drift.mp3" preload="auto"></audio>
+
+<div class="content">
+
+  <section id="hero">
+    <div class="eyebrow">B.Tech CSE — 2nd Year · NRI College</div>
+    <div>
+      <div class="hero-name">PAVAN<br><em>KUMAR</em></div>
+    </div>
+    <div class="scroll-cue"><div class="bar"></div>SCROLL TO EXPLORE</div>
+  </section>
+
+  <section class="section-content" data-section="About" data-hud="About_02">
+    <div class="section-tag">01 — OVERVIEW</div>
+    <h2>PAVAN KUMAR</h2>
+    <p>2nd Year B.Tech CSE student at NRI Institute of Technology. Driven by curiosity in software engineering, modern web tech, and creative digital media.</p>
+    <div class="stats-grid">
+      <div class="stat-item"><span class="stat-number">2nd</span><span class="stat-label">YEAR B.TECH</span></div>
+      <div class="stat-item"><span class="stat-number">CSE</span><span class="stat-label">DEPARTMENT</span></div>
+      <div class="stat-item"><span class="stat-number">NRI</span><span class="stat-label">COLLEGE</span></div>
+    </div>
+  </section>
+
+  <section class="section-content align-right" data-section="Dev" data-hud="Dev_03">
+    <div class="section-tag">02 — DEVELOPMENT</div>
+    <h2>ENGINEERING &amp; APPS</h2>
+    <p>Exploring core computer science concepts while building interactive web experiences, application prototypes, and experiment-driven side projects.</p>
+    <div class="stats-grid">
+      <div class="stat-item"><span class="stat-number">3D</span><span class="stat-label">WEB EXPERIENCES</span></div>
+      <div class="stat-item"><span class="stat-number">JS</span><span class="stat-label">CORE STACK</span></div>
+      <div class="stat-item"><span class="stat-number">100%</span><span class="stat-label">CURIOSITY</span></div>
+    </div>
+  </section>
+
+  <section class="section-content" data-section="Creative" data-hud="Creative_04">
+    <div class="section-tag">03 — CREATIVE ARTS</div>
+    <h2>PHOTOGRAPHY &amp; CINEMA</h2>
+    <p>Capturing raw visual frames through camera lenses and analyzing cinematic storytelling, color grading, and screenwriting in movies and series.</p>
+    <div class="stats-grid">
+      <div class="stat-item"><span class="stat-number">RAW</span><span class="stat-label">PHOTOGRAPHY</span></div>
+      <div class="stat-item"><span class="stat-number">CINE</span><span class="stat-label">FILM &amp; SERIES</span></div>
+      <div class="stat-item"><span class="stat-number">SMILE</span><span class="stat-label">SPIDER-MAN FAN</span></div>
+    </div>
+  </section>
+
+  <section class="section-content align-right" data-section="Perspective" data-hud="Perspective_05">
+    <div class="section-tag">04 — PERSPECTIVE</div>
+    <h2>GREAT POWER, GREAT RESPONSIBILITY</h2>
+    <p>“Whatever comes our way, whatever battle we have raging inside us, we always have a choice.” Balancing engineering logic with artistic passion.</p>
+    <div class="stats-grid">
+      <div class="stat-item"><span class="stat-number">4K</span><span class="stat-label">VISUAL EYE</span></div>
+      <div class="stat-item"><span class="stat-number">DEV</span><span class="stat-label">CREATIVE CODE</span></div>
+      <div class="stat-item"><span class="stat-number">∞</span><span class="stat-label">LEARNING</span></div>
+    </div>
+  </section>
+
+  <section id="outro" class="footer-content" data-hud="Connect_06">
+    <div class="section-tag">CONNECT</div>
+    <h1 class="hero-title">PAVAN KUMAR</h1>
+    <p class="outro-sub">STUDENT · DEVELOPER · VISUAL CREATIVE</p>
+    <p class="insta-handle">INSTAGRAM: <strong>@pavan__99123</strong></p>
+  </section>
+
+</div>
+
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+    "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+  }
+}
+</script>
+<script type="module">
+import * as THREE from 'three';
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+import { DRACOLoader } from 'three/addons/loaders/DRACOLoader.js';
+import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
+import { Reflector } from 'three/addons/objects/Reflector.js';
+import { DecalGeometry } from 'three/addons/geometries/DecalGeometry.js';
+import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
+import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
+import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
+import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
+import { FilmPass } from 'three/addons/postprocessing/FilmPass.js';
+
+/* =========================================================
+   CONFIG — MODEL_URL points to your local GLB.
+   Keep this HTML in the same folder as the GLB, or edit
+   the path below. Runs fine with a local server:
+   `python -m http.server` or VS Code "Live Server".
+   ========================================================= */
+const CONFIG = {
+  MODEL_URL: "f1_web_car/assets/car.glb",   // clean car-only GLB (f1_2022_textured_studio.glb is a full studio scene, not just the car)
+  MODEL_SCALE_FIT: 3.6,       // target size (world units) the car is scaled to fit
+  TOTAL_SPINS: 2.4,           // full rotations across the entire scroll
+  INITIAL_ROT_Y: 0,           // extra fixed rotation if the model faces away
+  REFLECTOR_RES: 1024,        // resolution of the glossy floor reflection
+  EXPOSURE: 0.78,
+  BLOOM_STRENGTH: 0.22,
+  BLOOM_RADIUS: 0.6,
+  BLOOM_THRESHOLD: 0.92,
+  FILM_GRAIN: 0.12,
+  STRIP_STAGE_PROPS: true,    // remove studio staging nodes (mirror plane, floor plates, light rigs, cubes, city, rain)
+  TIRE_TEXT: "P ZERO",        // sponsor text on tire sidewalls
+  TIRE_SUB:  "F1 SLICK",
+  BODY_TEXT: "PAVAN",         // sponsor text on body sides
+  BODY_SUB:  "AUDI F1 ///",
+  TEXT_COLOR: "#e20613",       // branding red
+  REAR_TEXT:  "PAVAN KUMAR"    // driver name on the back of the car
+};
+
+/* =========================================================
+   MATERIAL PALETTE — re-creates the Blender design that was
+   NOT exported into the GLB (those body materials shipped as
+   flat white [1,1,1,1]). Match on the GLB material name.
+   - `color`     : base colour (hex)
+   - `metal`     : metalness
+   - `rough`     : roughness
+   - `cc`        : clearcoat
+   - `checker`   : [colorA, colorB] to paint this material with
+                   a procedural checkered texture instead
+   Edit values freely — reload the page to apply.
+   ========================================================= */
+const PALETTE = {
+  'red':                        { color: 0x24272e, metal: 0.6, rough: 0.32, cc: 0.6, env: 0.7 },
+  'checkuered':                 { color: 0x262a31, metal: 0.6, rough: 0.34, cc: 0.6, env: 0.7 },
+  'carbon fiber':               { color: 0x181a1e, metal: 0.55, rough: 0.5,  cc: 0.5 },
+  'anodizedmetal_silver':       { color: 0xcfd4da, metal: 1.0,  rough: 0.22, env: 0.9 },
+  'anodizedmetal_grey':         { color: 0x8a8f96, metal: 0.9,  rough: 0.30, env: 0.9 },
+  'anodizedmetal_red':          { color: 0xd4452f, metal: 0.9,  rough: 0.24, env: 0.9 },
+  'chrome':                     { color: 0xd7dbe0, metal: 1.0,  rough: 0.08, env: 1.0 },
+  'mirror':                     { color: 0xcdd1d7, metal: 1.0,  rough: 0.05, env: 1.0 },
+  'rubber':                     { color: 0x15151a, metal: 0.0,  rough: 0.85 },
+  'mat_plastic':                { color: 0x2b2e34, metal: 0.1,  rough: 0.75 },
+  'bmbrass':                    { color: 0x95713c, metal: 1.0,  rough: 0.30 },
+  'fabric_seatbelts':           { color: 0x3a1d1d, metal: 0.0,  rough: 0.9 },
+  'bmd_felt':                   { color: 0x6a6e73, metal: 0.0,  rough: 0.95 },
+  'glass_clear_headlight':      { color: 0x0b0e13, metal: 0.0,  rough: 0.02, cc: 1.0 }
+};
+
+function paletteColorFor(name){
+  const k = (name || '').toLowerCase();
+  const keys = Object.keys(PALETTE).sort((a, b) => b.length - a.length);
+  for (const key of keys){
+    if (k.includes(key)) return PALETTE[key];
+  }
+  return null;
+}
+
+/* =========================================================
+   PROCEDURAL TEXTURES — since the design isn't baked into the
+   GLB, generate real textures in code:
+   - race livery stripes (red base / blue band / silver line)
+   - carbon fibre weave
+   - alcantara/felt suede
+   Orient the stripes along the car length by detecting which
+   UV axis correlates with the world X axis per mesh.
+   ========================================================= */
+
+function makeStripeCanvas(vertical){
+  const S = 1024;
+  const c = document.createElement('canvas'); c.width = c.height = S;
+  const x = c.getContext('2d');
+  const stripe = [
+    [0.00, 0.20, '#262a31'],   // titanium dark-slate centre
+    [0.20, 0.30, '#ff2800'],   // AUDI Sport red stripe
+    [0.30, 0.315, '#f2f4f7'],  // crisp white pinstripe
+    [0.315, 0.50, '#262a31']   // titanium dark-slate outer
+  ];
+  const half = S / 2;
+  for (let i = 0; i < half; i++){
+    const d = i / half;
+    let col = stripe[stripe.length - 1][2];
+    for (const s of stripe){
+      if (d >= s[0] && d < s[1]){ col = s[2]; break; }
+    }
+    x.fillStyle = col;
+    if (vertical){ x.fillRect(i, 0, 1, S); x.fillRect(S - 1 - i, 0, 1, S); }
+    else         { x.fillRect(0, i, S, 1); x.fillRect(0, S - 1 - i, S, 1); }
+  }
+  const t = new THREE.CanvasTexture(c);
+  t.wrapS = t.wrapT = THREE.RepeatWrapping;
+  t.anisotropy = 8;
+  t.colorSpace = THREE.SRGBColorSpace;
+  return t;
+}
+
+let _stripeTex = null;
+function getStripeTex(){
+  if (!_stripeTex) _stripeTex = [makeStripeCanvas(false), makeStripeCanvas(true)];
+  return _stripeTex;
+}
+
+function makeMicroTexture(colors, speckles){
+  const S = 256;
+  const c = document.createElement('canvas'); c.width = c.height = S;
+  const x = c.getContext('2d');
+  x.fillStyle = colors.base;
+  x.fillRect(0, 0, S, S);
+  if (colors.thread){
+    for (let i = 0; i < S; i += colors.thread){
+      x.fillStyle = colors.threadA; x.fillRect(i, 0, 1, S);
+      x.fillStyle = colors.threadB; x.fillRect(0, i, S, 1);
+    }
+  }
+  for (let i = 0; i < speckles; i++){
+    const a = Math.random() * S, b = Math.random() * S;
+    const g = x.createRadialGradient(a, b, 0, a, b, 3);
+    const col = Math.random() > 0.5 ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.06)';
+    g.addColorStop(0, col); g.addColorStop(1, 'rgba(0,0,0,0)');
+    x.fillStyle = g;
+    x.fillRect(a - 3, b - 3, 6, 6);
+  }
+  const t = new THREE.CanvasTexture(c);
+  t.wrapS = t.wrapT = THREE.RepeatWrapping;
+  t.anisotropy = 8;
+  t.colorSpace = THREE.SRGBColorSpace;
+  return t;
+}
+
+let _carbonTex = null, _alcantaraTex = null;
+function getCarbonTex(){
+  if (!_carbonTex) _carbonTex = makeMicroTexture(
+    { base: '#191b1e', thread: 32, threadA: '#23262a', threadB: '#15171a' }, 1200);
+  return _carbonTex;
+}
+function getAlcantaraTex(){
+  if (!_alcantaraTex) _alcantaraTex = makeMicroTexture(
+    { base: '#2d3035' }, 5000);
+  return _alcantaraTex;
+}
+
+/* dark polished race-track tile floor */
+let _tileTex = null;
+function getTileTex(){
+  if (_tileTex) return _tileTex;
+  const S = 1024, N = 4, gap = 14;
+  const c = document.createElement('canvas'); c.width = c.height = S;
+  const x = c.getContext('2d');
+  const cell = (S - gap * N) / N;
+  for (let v = 0; v <= N; v++){
+    for (let i = 0; i < S; i++){
+      x.fillStyle = 'rgba(64,72,84,0.5)';
+      x.fillRect(i, v * (cell + gap), 1, gap);
+      x.fillRect(v * (cell + gap), i, gap, 1);
+    }
+  }
+  for (let v = 0; v < N; v++){
+    for (let i = 0; i < N; i++){
+      const tone = ((i + v) % 2 === 0) ? '#17191d' : '#1c1f24';
+      x.fillStyle = tone;
+      x.fillRect(i * (cell + gap) + 1, v * (cell + gap) + 1, cell - 1, cell - 1);
+      // subtle per-tile sheen tick
+      x.fillStyle = 'rgba(255,255,255,0.03)';
+      x.fillRect(i * (cell + gap) + 2, v * (cell + gap) + 2, cell / 2, cell / 5);
+    }
+  }
+  _tileTex = new THREE.CanvasTexture(c);
+  _tileTex.wrapS = _tileTex.wrapT = THREE.RepeatWrapping;
+  _tileTex.anisotropy = 8;
+  _tileTex.colorSpace = THREE.SRGBColorSpace;
+  return _tileTex;
+}
+
+function uvLengthAxis(o){
+  const pos = o.geometry.attributes.position;
+  const uv = o.geometry.attributes.uv;
+  const n = Math.min(pos.count, 10000);
+  const v = new THREE.Vector3();
+  let mx = 0, mU = 0, mV = 0;
+  for (let i = 0; i < n; i++){
+    v.fromBufferAttribute(pos, i).applyMatrix4(o.matrixWorld);
+    mx += v.x; mU += uv.getX(i); mV += uv.getY(i);
+  }
+  mx /= n; mU /= n; mV /= n;
+  let cU = 0, cV = 0;
+  for (let i = 0; i < n; i++){
+    v.fromBufferAttribute(pos, i).applyMatrix4(o.matrixWorld);
+    cU += (v.x - mx) * (uv.getX(i) - mU);
+    cV += (v.x - mx) * (uv.getY(i) - mV);
+  }
+  return Math.abs(cU) >= Math.abs(cV) ? 'u' : 'v';
+}
+
+function worldDims(o){
+  o.geometry.computeBoundingBox();
+  const bb = o.geometry.boundingBox.clone().applyMatrix4(o.matrixWorld);
+  return {
+    x: bb.max.x - bb.min.x,
+    y: bb.max.y - bb.min.y,
+    z: bb.max.z - bb.min.z
+  };
+}
+
+function applyLiveryTextures(root){
+  root.updateMatrixWorld(true);
+  root.traverse((o) => {
+    if (!o.isMesh) return;
+    const uv = o.geometry && o.geometry.attributes && o.geometry.attributes.uv;
+    if (!uv || uv.count < 3) return;
+    const mats = Array.isArray(o.material) ? o.material : [o.material];
+    mats.forEach((m) => {
+      if (!m || !m.userData || !m.userData.liveryTag) return;
+      if (m.map) return;
+      const dims = worldDims(o);
+      if (m.userData.liveryTag === 'stripe'){
+        const lenAxis = uvLengthAxis(o);
+        const [texAcrossV, texAcrossU] = getStripeTex();
+        const len = Math.max(dims.x, dims.z);
+        const reps = Math.max(1, Math.round(len / 0.55));
+        const t = (lenAxis === 'u') ? texAcrossV : texAcrossU;
+        if (lenAxis === 'u') t.repeat.set(reps, 1);
+        else t.repeat.set(1, reps);
+        m.map = t;
+        m.color.setHex(0xffffff);
+      } else {
+        const t = m.userData.liveryTag === 'carbon' ? getCarbonTex() : getAlcantaraTex();
+        const cell = m.userData.liveryTag === 'carbon' ? 0.02 : 0.03;
+        const dim = Math.sqrt(Math.max(dims.x * dims.z, 1e-6));
+        const reps = Math.max(1, Math.round(dim / cell));
+        t.repeat.set(reps, reps);
+        m.map = t;
+        m.color.setHex(0xffffff);
+      }
+      m.needsUpdate = true;
+    });
+  });
+}
+
+/* =========================================================
+   SPONSOR DECALS — "P ZERO" on tire sidewalls, livery text on
+   the body sides. UV-free: decals are raycast onto the surface
+   and projected via DecalGeometry, so placement is automatic.
+   ========================================================= */
+
+let _sponsorTex = null;
+function getSponsorTex(){
+  if (_sponsorTex) return _sponsorTex;
+  const W = 1024, H = 512;
+  const c = document.createElement('canvas'); c.width = W; c.height = H;
+  const x = c.getContext('2d');
+  x.clearRect(0, 0, W, H);
+  x.fillStyle = CONFIG.TEXT_COLOR;
+  x.font = 'bold 180px Arial, sans-serif';
+  x.textAlign = 'center';
+  x.textBaseline = 'middle';
+  x.fillText(CONFIG.TIRE_TEXT, W/2, H*0.32);
+  x.fillStyle = 'rgba(255,255,255,0.95)';
+  x.font = 'bold 84px Arial, sans-serif';
+  x.fillText(CONFIG.TIRE_SUB, W/2, H*0.68);
+  _sponsorTex = new THREE.CanvasTexture(c);
+  _sponsorTex.colorSpace = THREE.SRGBColorSpace;
+  _sponsorTex.anisotropy = 8;
+  return _sponsorTex;
+}
+
+let _bodyTex = null;
+function getRearTex(){
+  const W = 1024, H = 256;
+  const c = document.createElement('canvas'); c.width = W; c.height = H;
+  const x = c.getContext('2d');
+  x.clearRect(0, 0, W, H);
+  x.fillStyle = CONFIG.TEXT_COLOR;
+  x.font = 'bold 150px Anton, Arial, sans-serif';
+  x.textAlign = 'center';
+  x.textBaseline = 'middle';
+  x.fillText(CONFIG.REAR_TEXT, W/2, H/2);
+  const t = new THREE.CanvasTexture(c);
+  t.colorSpace = THREE.SRGBColorSpace;
+  t.anisotropy = 8;
+  return t;
+}
+function getBodyTex(){
+  if (_bodyTex) return _bodyTex;
+  const W = 2048, H = 512;
+  const c = document.createElement('canvas'); c.width = W; c.height = H;
+  const x = c.getContext('2d');
+  x.clearRect(0, 0, W, H);
+  x.fillStyle = CONFIG.TEXT_COLOR;
+  x.font = 'bold 300px Anton, Arial, sans-serif';
+  x.textAlign = 'center';
+  x.textBaseline = 'middle';
+  x.fillText(CONFIG.BODY_TEXT, W/2, H*0.38);
+  x.fillStyle = 'rgba(255,255,255,0.9)';
+  x.font = '700 110px Arial, sans-serif';
+  x.fillText(CONFIG.BODY_SUB, W/2, H*0.78);
+  _bodyTex = new THREE.CanvasTexture(c);
+  _bodyTex.colorSpace = THREE.SRGBColorSpace;
+  _bodyTex.anisotropy = 8;
+  return _bodyTex;
+}
+
+function makeDecalMaterial(tex){
+  return new THREE.MeshBasicMaterial({
+    map: tex,
+    transparent: true,
+    depthWrite: false,
+    polygonOffset: true,
+    polygonOffsetFactor: -4,
+    polygonOffsetUnits: -4,
+    side: THREE.DoubleSide
+  });
+}
+
+function attachDecalToCarRoot(decal){
+  const inv = carRoot.matrixWorld.clone().invert();
+  const pos = decal.geometry.attributes.position;
+  const v = new THREE.Vector3();
+  for (let i = 0; i < pos.count; i++){
+    v.fromBufferAttribute(pos, i).applyMatrix4(inv);
+    pos.setXYZ(i, v.x, v.y, v.z);
+  }
+  pos.needsUpdate = true;
+  decal.geometry.computeBoundingSphere();
+  carRoot.add(decal);
+}
+
+const _ray = new THREE.Raycaster();
+function projectDecal(targets, anchor, dir, size, tex){
+  _ray.set(anchor, dir);
+  _ray.far = 10;
+  const hits = _ray.intersectObjects(targets, true);
+  if (!hits.length) return;
+  const hit = hits[0];
+  const p = hit.point;
+  const normal = hit.face
+    ? hit.face.normal.clone().transformDirection(hit.object.matrixWorld)
+    : dir.clone();
+  if (normal.dot(dir) < 0) normal.negate();
+  const quat = new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 0, 1), normal);
+  const geo = new DecalGeometry(hit.object, p, quat, size);
+  attachDecalToCarRoot(new THREE.Mesh(geo, makeDecalMaterial(tex)));
+}
+
+function addSponsorDecals(root){
+  const tireMat = makeDecalMaterial(getSponsorTex());
+  const bodyMat = makeDecalMaterial(getBodyTex());
+  const _v = new THREE.Vector3();
+
+  root.updateMatrixWorld(true);
+
+  // --- tire sidewalls ---
+  const tireCandidates = [];
+  root.traverse((o) => { if (o.isMesh && /tire|tyre/.test(o.name)) tireCandidates.push(o); });
+  tireCandidates.forEach((t) => {
+    if (!t.geometry || !t.geometry.attributes.position) return;
+    t.geometry.computeBoundingBox();
+    const bb = t.geometry.boundingBox.clone();
+    const corners = [
+      [0,0,0],[0,0,1],[0,1,0],[0,1,1],[1,0,0],[1,0,1],[1,1,0],[1,1,1]
+    ].map(([a,b,cc]) => {
+      return new THREE.Vector3(
+        a ? bb.max.x : bb.min.x,
+        b ? bb.max.y : bb.min.y,
+        cc ? bb.max.z : bb.min.z
+      ).applyMatrix4(t.matrixWorld);
+    });
+    const dMin = new THREE.Vector3(1e9,1e9,1e9), dMax = new THREE.Vector3(-1e9,-1e9,-1e9);
+    corners.forEach((c) => { dMin.min(c); dMax.max(c); });
+    const ex = dMax.x-dMin.x, ey = dMax.y-dMin.y, ez = dMax.z-dMin.z;
+    const axis = ex < ey && ex < ez ? 'x' : (ey < ez ? 'y' : 'z');
+    const half = { x: ex/2, y: ey/2, z: ez/2 }[axis];
+    const center = dMin.clone().add(dMax).multiplyScalar(0.5);
+    const N = new THREE.Vector3(axis === 'x' ? 1 : 0, axis === 'y' ? 1 : 0, axis === 'z' ? 1 : 0);
+    const radius = Math.max(
+      axis === 'x' ? Math.max(ey, ez) : axis === 'y' ? Math.max(ex, ez) : Math.max(ex, ey)
+    ) / 2;
+
+    [-1, 1].forEach((side) => {
+      const anchor = center.clone().addScaledVector(N, side * (half + 0.03));
+      const dir = N.clone().multiplyScalar(-side);
+      const size = new THREE.Vector3(radius * 1.25, radius * 0.3, 0.02);
+      _ray.set(anchor, dir);
+      _ray.far = 0.3;
+      const hits = _ray.intersectObject(t, true);
+      if (!hits.length) return;
+      const p = hits[0].point;
+      const nrm = hits[0].face.normal.clone().transformDirection(hits[0].object.matrixWorld);
+      if (nrm.dot(dir) < 0) nrm.negate();
+      const quat = new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0,0,1), nrm);
+      const geo = new DecalGeometry(hits[0].object, p, quat, size);
+      const decal = new THREE.Mesh(geo, tireMat);
+      attachDecalToCarRoot(decal);
+    });
+    _v.copy(dMin); _v.copy(dMax);
+  });
+
+  // --- body sides (widest point of the car) ---
+  const bbAll = new THREE.Box3().setFromObject(root);
+  const cAll = new THREE.Vector3(); bbAll.getCenter(cAll);
+  const halfW = (bbAll.max.x - bbAll.min.x) / 2;
+  const bodies = [];
+  root.traverse((o) => { if (o.isMesh && /body|floor|mirror|side|pod/i.test(o.name)) bodies.push(o); });
+  const targets = bodies.length ? bodies : [root];
+
+  [-1, 1].forEach((side) => {
+    const anchor = new THREE.Vector3(cAll.x + side * (halfW + 0.05), cAll.y, cAll.z);
+    const dir = new THREE.Vector3(-side, 0, 0);
+    _ray.set(anchor, dir);
+    _ray.far = 3;
+    const hits = _ray.intersectObjects(targets, true);
+    if (!hits.length) return;
+    const hit = hits[0];
+    const nrm = hit.face.normal.clone().transformDirection(hit.object.matrixWorld);
+    if (nrm.dot(dir) < 0) nrm.negate();
+    const quat = new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0,0,1), nrm);
+    const geo = new DecalGeometry(hit.object, hit.point, quat, new THREE.Vector3(2.2, 0.32, 0.03));
+    const decal = new THREE.Mesh(geo, bodyMat);
+    attachDecalToCarRoot(decal);
+  });
+
+  // --- rear (driver name on the back of the car) ---
+  const rearMeshes = [];
+  root.traverse((o) => { if (o.isMesh && /rear|diffuser|exhaust|tail/i.test(o.name)) rearMeshes.push(o); });
+  if (rearMeshes.length){
+    const bbR = new THREE.Box3();
+    rearMeshes.forEach((o) => bbR.expandByObject(o));
+    const cR = new THREE.Vector3(); bbR.getCenter(cR);
+    const side = (cR.z < cAll.z) ? -1 : 1;         // which Z-end is the rear
+    const half = (bbR.max.z - bbR.min.z) / 2;
+    const anchor = new THREE.Vector3(cR.x, cR.y, cR.z + side * (half + 0.06));
+    const dir = new THREE.Vector3(0, 0, -side);
+    _ray.set(anchor, dir);
+    _ray.far = 3;
+    const hits = _ray.intersectObjects(targets, true);
+    if (hits.length){
+      const hit = hits[0];
+      const nrm = hit.face.normal.clone().transformDirection(hit.object.matrixWorld);
+      if (nrm.dot(dir) < 0) nrm.negate();
+      const quat = new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0,0,1), nrm);
+      const geo = new DecalGeometry(hit.object, hit.point, quat, new THREE.Vector3(1.8, 0.26, 0.03));
+      const decal = new THREE.Mesh(geo, makeDecalMaterial(getRearTex()));
+      attachDecalToCarRoot(decal);
+    }
+  }
+}
+
+/* Studio-scene staging props to discard. Matched on node names so only
+   the actual car survives. */
+const STAGE_RE = /^(mirror_plane|ferrari_2022|floor|floor_titanium_plate|Empty|Circle|Cube|led_light_cylinder|Cylinder\.00[7-9]|Cylinder\.0[1-2][0-9]|city_building|rain_streak|cinematic_focus|focuspoint)/i;
+
+function stripStageProps(root){
+  const doomed = [];
+  root.traverse((o) => {
+    if (o.parent && STAGE_RE.test(o.name)) doomed.push(o);
+  });
+  doomed.forEach((o) => o.parent.remove(o));
+  console.log('Stripped studio nodes:', doomed.map(o => o.name).join(', ') || '(none)');
+}
+
+/* ---------------- renderer / scene ---------------- */
+const wrap = document.getElementById('canvas-wrap');
+const renderer = new THREE.WebGLRenderer({ antialias:true, alpha:false, powerPreference:'high-performance' });
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+renderer.setSize(window.innerWidth, window.innerHeight);
+renderer.outputColorSpace = THREE.SRGBColorSpace;
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = CONFIG.EXPOSURE;
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+wrap.appendChild(renderer.domElement);
+
+const scene = new THREE.Scene();
+scene.fog = new THREE.Fog(0x0b0d10, 14, 30);
+
+const camera = new THREE.PerspectiveCamera(35, window.innerWidth/window.innerHeight, 0.1, 100);
+camera.position.set(0, 1.6, 7);
+
+/* ---------------- image-based studio environment ----------------
+   THE big realism win: instead of a fake black void, the whole
+   scene is lit by a real studio-gradient light probe, so the
+   paint picks up soft reflections and highlights like a real car.
+   ----------------------------------------------------------------- */
+const pmrem = new THREE.PMREMGenerator(renderer);
+pmrem.compileEquirectangularShader();
+const envTex = pmrem.fromScene(new RoomEnvironment(), 0.04).texture;
+scene.environment = envTex;
+
+/* ---------------- background: white + red light shades ----------------
+   Painted gradient backdrop so the void behind the car isn't flat black.
+   ----------------------------------------------------------------------- */
+function makeBackdrop(){
+  const W = 2048, H = 1024;
+  const c = document.createElement('canvas'); c.width = W; c.height = H;
+  const x = c.getContext('2d');
+  const base = x.createLinearGradient(0, 0, 0, H);
+  base.addColorStop(0, '#0e1116');
+  base.addColorStop(0.55, '#0a0c10');
+  base.addColorStop(1, '#10131a');
+  x.fillStyle = base; x.fillRect(0, 0, W, H);
+
+  // soft white glow, upper-left
+  let rg = x.createRadialGradient(W*0.26, H*0.28, 0, W*0.26, H*0.28, W*0.42);
+  rg.addColorStop(0, 'rgba(255,255,255,0.22)');
+  rg.addColorStop(0.5, 'rgba(255,255,255,0.08)');
+  rg.addColorStop(1, 'rgba(255,255,255,0)');
+  x.fillStyle = rg; x.fillRect(0, 0, W, H);
+
+  // hot red glow behind the car, centre-right
+  rg = x.createRadialGradient(W*0.7, H*0.52, 0, W*0.7, H*0.52, W*0.46);
+  rg.addColorStop(0, 'rgba(255,48,18,0.30)');
+  rg.addColorStop(0.4, 'rgba(255,32,12,0.12)');
+  rg.addColorStop(1, 'rgba(255,32,12,0)');
+  x.fillStyle = rg; x.fillRect(0, 0, W, H);
+
+  // red light pool along the bottom
+  rg = x.createRadialGradient(W*0.5, H*1.02, 0, W*0.5, H*1.02, W*0.4);
+  rg.addColorStop(0, 'rgba(255,50,25,0.20)');
+  rg.addColorStop(1, 'rgba(255,50,25,0)');
+  x.fillStyle = rg; x.fillRect(0, 0, W, H);
+
+  const t = new THREE.CanvasTexture(c);
+  t.colorSpace = THREE.SRGBColorSpace;
+  return t;
+}
+scene.background = makeBackdrop();
+
+/* ---------------- studio lighting (now fills above the probe) -- */
+const hemi = new THREE.HemisphereLight(0x9099a6, 0x08090c, 0.22);
+scene.add(hemi);
+
+const key = new THREE.SpotLight(0xffffff, 42, 30, Math.PI/6, 0.4, 1.4);
+key.position.set(5, 8, 5);
+key.castShadow = true;
+key.shadow.mapSize.set(2048,2048);
+scene.add(key);
+
+const rim = new THREE.SpotLight(0xff3b30, 18, 30, Math.PI/5, 0.5, 1.2);
+rim.position.set(-6, 4, -5);
+scene.add(rim);
+
+const fill = new THREE.PointLight(0x5a7bff, 6, 20);
+fill.position.set(-4, 2, 4);
+scene.add(fill);
+
+/* dark polished race-track tile floor */
+const baseGeo = new THREE.CircleGeometry(30, 64);
+const tileTex = getTileTex();
+tileTex.repeat.set(30, 30);
+const baseMat = new THREE.MeshStandardMaterial({
+  map: tileTex,
+  color: 0x9aa0a6,
+  roughness: 0.38, metalness: 0.5, envMapIntensity: 1.1, clearcoat: 1.0, clearcoatRoughness: 0.14
+});
+const base = new THREE.Mesh(baseGeo, baseMat);
+base.rotation.x = -Math.PI/2;
+base.receiveShadow = true;
+scene.add(base);
+
+const reflector = new Reflector(new THREE.CircleGeometry(14, 64), {
+  clipBias: 0.003,
+  textureWidth: CONFIG.REFLECTOR_RES,
+  textureHeight: CONFIG.REFLECTOR_RES,
+  color: 0x9aa0a6,
+  multisample: 4
+});
+reflector.rotation.x = -Math.PI/2;
+reflector.position.y = 0.001;
+reflector.visible = false;      // matte floor — reflections turned off
+scene.add(reflector);
+
+// soft ring accent under the car
+const ringGeo = new THREE.RingGeometry(2.0, 2.02, 128);
+const ringMat = new THREE.MeshBasicMaterial({ color:0xe10600, transparent:true, opacity:0.35, side:THREE.DoubleSide });
+const ring = new THREE.Mesh(ringGeo, ringMat);
+ring.rotation.x = -Math.PI/2;
+ring.position.y = 0.01;
+scene.add(ring);
+
+// soft radial contact shadow — grounds the tyres on the floor
+function makeContactShadow(){
+  const c = document.createElement('canvas'); c.width = c.height = 256;
+  const ctx = c.getContext('2d');
+  const g = ctx.createRadialGradient(128,128,8,128,128,128);
+  g.addColorStop(0, 'rgba(0,0,0,0.9)');
+  g.addColorStop(0.45, 'rgba(0,0,0,0.38)');
+  g.addColorStop(1, 'rgba(0,0,0,0)');
+  ctx.fillStyle = g; ctx.fillRect(0,0,256,256);
+  const t = new THREE.CanvasTexture(c);
+  const m = new THREE.Mesh(
+    new THREE.PlaneGeometry(3.8, 3.8),
+    new THREE.MeshBasicMaterial({ map:t, transparent:true, opacity:0.65, depthWrite:false })
+  );
+  m.rotation.x = -Math.PI/2;
+  m.position.y = 0.002;
+  return m;
+}
+const contactShadow = makeContactShadow();
+scene.add(contactShadow);
+
+/* ---------------- post-processing (bloom + film) ---------------- */
+const composer = new EffectComposer(renderer);
+composer.addPass(new RenderPass(scene, camera));
+const bloom = new UnrealBloomPass(
+  new THREE.Vector2(window.innerWidth, window.innerHeight),
+  CONFIG.BLOOM_STRENGTH, CONFIG.BLOOM_RADIUS, CONFIG.BLOOM_THRESHOLD
+);
+composer.addPass(bloom);
+const film = new FilmPass(CONFIG.FILM_GRAIN, 0.06, 512, false);
+composer.addPass(film);
+composer.addPass(new OutputPass());
+
+/* ---------------- load model ---------------- */
+const carGroup = new THREE.Group();
+carGroup.rotation.y = CONFIG.INITIAL_ROT_Y;
+scene.add(carGroup);
+
+const loaderFill = document.getElementById('loader-fill');
+const loaderEl = document.getElementById('loader');
+
+const dracoLoader = new DRACOLoader();
+dracoLoader.setDecoderPath('https://unpkg.com/three@0.160.0/examples/jsm/libs/draco/');
+const gltfLoader = new GLTFLoader();
+gltfLoader.setDRACOLoader(dracoLoader);
+
+let carRoot = null;
+
+function setModelLoadingText(t){
+  document.querySelector('#loader .loader-text').textContent = t;
+}
+
+/* Per-part material tuning — this is where "toy" dies.
+   Flattens rubber, gives the body deep glossy clearcoat paint,
+   and gives glass its specular sheen. envMapIntensity is kept
+   LOW on paint so the bright studio light doesn't wash the
+   base colour out to white. */
+function refineMaterial(m, nodeName){
+  const n = ((m.name||'') + ' ' + (nodeName||'')).toLowerCase();
+  const isRubber  = /tire|tyre|wheel|rim|rubber|brake|disc/i.test(n);
+  const isGlass   = /glass|windscreen|windshield|window|visor|cockpit|lens|screen|headlight(?![^ ]*glass_optics)/i.test(n) && !/diffuser|wing/.test(n);
+  const isCarbon  = /carbon|monocoque|chassis|floor|diffuser|undertray/i.test(n);
+
+  m.needsUpdate = true;
+
+  if (isRubber){
+    m.roughness = Math.max(m.roughness, 0.8);
+    m.metalness = Math.min(m.metalness, 0.15);
+    m.envMapIntensity = 0.4;
+    if (m.isMeshStandardMaterial){ m.clearcoat = 0; }
+  } else if (isGlass){
+    m.roughness = 0.04;
+    m.metalness = 0;
+    m.clearcoat = 1.0;
+    m.clearcoatRoughness = 0.02;
+    m.transmission = 0.35;
+    m.transmissionRoughness = 0.12;
+    m.envMapIntensity = 1.0;
+  } else {
+    // body / paint — keep the ORIGINAL metalness so paint keeps its
+    // colour (forcing metalness up makes everything mirror-white)
+    m.metalness = Math.min(m.metalness, 0.75);
+    m.roughness = Math.min(m.roughness, 0.45);
+    m.clearcoat = isCarbon ? 0.5 : 0.75;
+    m.clearcoatRoughness = isCarbon ? 0.25 : 0.1;
+    m.envMapIntensity = 0.55;
+  }
+
+  // ---- re-create the Blender design that wasn't baked into the GLB ----
+  const pp = paletteColorFor(m.name);
+  if (pp){
+    if (pp.color !== undefined) m.color.setHex(pp.color);
+    if (pp.metal !== undefined) m.metalness = pp.metal;
+    if (pp.rough !== undefined) m.roughness = pp.rough;
+    if (pp.cc !== undefined) m.clearcoat = pp.cc;
+    if (pp.env  !== undefined) m.envMapIntensity = pp.env;
+    m.needsUpdate = true;
+  }
+
+  // tag for procedural textures applied later (after scale is known)
+  const tag =
+    /checkuered|red/i.test(m.name || '') ? 'stripe' :
+    /carbon/i.test(m.name || '') ? 'carbon' :
+    (/felt|fabric|seat/.test(m.name || '')) ? 'alcantara' : null;
+  m.userData = m.userData || {};
+  m.userData.liveryTag = tag;
+
+  // ---- special paint rules by PART (node name) ----
+  const nodeK = (nodeName || '').toLowerCase();
+  const matK = (m.name || '').toLowerCase();
+
+  // kill the bright-blue Metal material (Material.002) — the brake duct /
+  // hub cylinder inside the wheel. Turn it into dark graphite alloy.
+  if (/material\.00?2/i.test(matK) && !isRubber && !isGlass){
+    m.color.setHex(0x24272d);
+    m.metalness = 0.8;
+    m.roughness = 0.4;
+    m.clearcoat = 0.2;
+    m.envMapIntensity = 0.8;
+    m.userData.liveryTag = null;
+  }
+
+  // dark-matte leather / fabric seat, belts, felt — no gloss
+  if (/seat|belt|felt|fabric/.test(nodeK) || /seat|belt|felt|fabric/.test(matK)){
+    m.color.setHex(0x1c1c1f);   // true dark charcoal, keeps detail visible
+    m.roughness = 0.88;
+    m.metalness = 0.05;
+    m.clearcoat = 0;
+    m.envMapIntensity = 0.3;
+    m.userData.liveryTag = 'alcantara';
+  }
+
+  // red rims / hubs
+  // black rims / hubs / covers / suspension — everything in the wheel area
+  if (!isRubber && !isGlass &&
+      /rim|hub|wheel|cover|brakeduct|ventil|arm|rod|steering/i.test(nodeK) &&
+      !/wing|led|glass/i.test(nodeK)){
+    m.color.setHex(0x14161a);   // glossy black alloy
+    m.metalness = 0.9;
+    m.roughness = 0.22;
+    m.clearcoat = 0.4;
+    m.envMapIntensity = 1.0;
+    m.userData.liveryTag = null;
+  }
+
+  // black windshield glass; keep LED covers lighter so they stay readable
+  if (isGlass){
+    m.transmission = /led|stickers/.test(nodeK) ? 0.3 : 0.18;
+    m.envMapIntensity = 1.3;
+    if (!/led|stickers|screen/.test(nodeK)) m.color.setHex(0x07090c);
+  }
+  return m;
+}
+
+function upscaleMaterials(root){
+  root.traverse((o) => {
+    if (!o.isMesh || !o.material) return;
+    const arr = Array.isArray(o.material) ? o.material : [o.material];
+    const refined = arr.map(m => (m.isMeshStandardMaterial || m.isMeshPhysicalMaterial) ? refineMaterial(m, o.name) : m);
+    o.material = Array.isArray(o.material) ? refined : refined[0];
+    o.castShadow = true;
+    o.receiveShadow = true;
+  });
+}
+
+gltfLoader.load(
+  CONFIG.MODEL_URL,
+  (gltf) => {
+    carRoot = gltf.scene;
+    upscaleMaterials(carRoot);
+    if (CONFIG.STRIP_STAGE_PROPS) stripStageProps(carRoot);
+
+    // auto-fit: center + scale to target size
+    const box = new THREE.Box3().setFromObject(carRoot);
+    const size = new THREE.Vector3();
+    box.getSize(size);
+    const center = new THREE.Vector3();
+    box.getCenter(center);
+
+    const maxDim = Math.max(size.x, size.y, size.z);
+    const scale = CONFIG.MODEL_SCALE_FIT / maxDim;
+    carRoot.scale.setScalar(scale);
+
+    // re-measure after scaling to re-center properly
+    const box2 = new THREE.Box3().setFromObject(carRoot);
+    const center2 = new THREE.Vector3();
+    box2.getCenter(center2);
+    carRoot.position.sub(center2);
+    // sit on the floor
+    carRoot.position.y -= box2.min.y - center2.y;
+
+    carGroup.add(carRoot);
+    applyLiveryTextures(carRoot);
+    addSponsorDecals(carRoot);
+
+    loaderEl.style.opacity = '0';
+    setTimeout(() => loaderEl.style.display = 'none', 650);
+  },
+  (xhr) => {
+    if (xhr.total) {
+      const pct = Math.min(100, Math.round((xhr.loaded / xhr.total) * 100));
+      loaderFill.style.width = pct + '%';
+    }
+  },
+  (err) => {
+    console.error('Model failed to load:', err);
+    setModelLoadingText('MODEL FAILED — SEE CONSOLE / SAME FOLDER');
+  }
+);
+
+/* ---------------- camera path across scroll ---------------- */
+// keyframes: progress 0..1 -> camera position + lookAt + fov
+const keyframes = [
+  { p:0.00, pos:[0.0, 1.6, 7.2], look:[0,0.6,0], fov:35 },
+  { p:0.20, pos:[3.2, 1.2, 3.4], look:[0,0.5,0], fov:32 },
+  { p:0.40, pos:[-3.4, 0.9, 2.4], look:[0.3,0.35,0], fov:28 },
+  { p:0.60, pos:[2.6, 1.4, -2.6], look:[0,0.5,0], fov:30 },
+  { p:0.80, pos:[-2.2, 1.0, -3.2], look:[0,0.55,0], fov:32 },
+  { p:1.00, pos:[0.0, 2.1, 8.4], look:[0,0.6,0], fov:36 }
+];
+
+function lerp(a,b,t){ return a+(b-a)*t; }
+function lerpVec(a,b,t){ return [lerp(a[0],b[0],t), lerp(a[1],b[1],t), lerp(a[2],b[2],t)]; }
+
+function cameraForProgress(p){
+  p = Math.min(1, Math.max(0, p));
+  for (let i=0; i<keyframes.length-1; i++){
+    const k0 = keyframes[i], k1 = keyframes[i+1];
+    if (p >= k0.p && p <= k1.p){
+      const t = (p - k0.p) / (k1.p - k0.p);
+      return {
+        pos: lerpVec(k0.pos, k1.pos, t),
+        look: lerpVec(k0.look, k1.look, t),
+        fov: lerp(k0.fov, k1.fov, t)
+      };
+    }
+  }
+  const last = keyframes[keyframes.length-1];
+  return { pos:last.pos, look:last.look, fov:last.fov };
+}
+
+/* ---------------- scroll tracking ---------------- */
+const sectionEls = Array.from(document.querySelectorAll('section[data-hud]'));
+const hudSectionEl = document.getElementById('hud-section');
+const dialArc = document.getElementById('dial-arc');
+const dialNum = document.getElementById('dial-num');
+const progressFill = document.getElementById('progress-fill');
+const CIRC = 264;
+
+let targetProgress = 0;
+let smoothProgress = 0;
+
+function getScrollProgress(){
+  const doc = document.documentElement;
+  const scrollTop = window.scrollY || doc.scrollTop;
+  const max = doc.scrollHeight - window.innerHeight;
+  return max > 0 ? scrollTop / max : 0;
+}
+
+function updateHudSection(p){
+  let current = 'Showroom_01';
+  for (const el of sectionEls){
+    const rect = el.getBoundingClientRect();
+    if (rect.top < window.innerHeight * 0.6 && rect.bottom > window.innerHeight * 0.4){
+      current = el.dataset.hud;
+    }
+  }
+  hudSectionEl.innerHTML = current.replace('_', '<span>_') + '</span>';
+}
+
+window.addEventListener('scroll', () => {
+  targetProgress = getScrollProgress();
+}, { passive:true });
+
+/* ---------------- scroll reveal ---------------- */
+const revealObserver = new IntersectionObserver((entries) => {
+  entries.forEach((entry) => {
+    if (entry.isIntersecting){
+      entry.target.classList.add('is-visible');
+      revealObserver.unobserve(entry.target);
+    }
+  });
+}, { threshold: 0.3 });
+document.querySelectorAll('.section-content, .footer-content').forEach((el) => revealObserver.observe(el));
+
+/* ---------------- auto-tour track + mute ---------------- */
+const tokyoSound = document.getElementById('tokyoSound');
+const autoToggle = document.getElementById('auto-toggle');
+const soundToggle = document.getElementById('sound-toggle');
+
+let autoOn = false;
+let songMuted = false;
+
+function playSong(){
+  if (songMuted) return;
+  if (tokyoSound.paused) tokyoSound.currentTime = 0;  // fresh start each tour
+  tokyoSound.play().catch(() => {});
+}
+
+function stopSong(){
+  tokyoSound.pause();
+}
+
+function toggleMute(){
+  songMuted = !songMuted;
+  soundToggle.classList.toggle('on', songMuted);
+  soundToggle.textContent = songMuted ? 'UNMUTE' : 'MUTE';
+  if (songMuted){
+    stopSong();
+  } else if (autoOn){
+    playSong();
+  }
+}
+soundToggle.addEventListener('click', toggleMute);
+
+/* ---------------- auto tourist mode ---------------- */
+const AUTO_DURATION = 34000;
+let autoRAF = null;
+let autoStart = null;
+
+function getMaxScroll(){
+  return document.documentElement.scrollHeight - window.innerHeight;
+}
+
+function autoRun(t){
+  if (!autoOn) return;
+  if (autoStart === null) autoStart = t;
+  const p = Math.min((t - autoStart) / AUTO_DURATION, 1);
+  window.scrollTo(0, p * getMaxScroll());
+  if (p >= 1){ setAuto(false); return; }
+  autoRAF = requestAnimationFrame(autoRun);
+}
+
+function setAuto(on){
+  autoOn = on;
+  autoToggle.classList.toggle('on', on);
+  autoToggle.textContent = on ? '■ STOP' : 'AUTO TOUR';
+  // CSS uses scroll-behavior:smooth — that fights per-frame jumps,
+  // so pin it to instant for the whole tour and restore afterwards.
+  document.documentElement.style.scrollBehavior = on ? 'auto' : '';
+
+  if (on){
+    autoStart = null;
+    autoRAF = requestAnimationFrame(autoRun);
+    playSong();
+  } else {
+    cancelAnimationFrame(autoRAF);
+    autoStart = null;
+    stopSong();
+  }
+}
+
+autoToggle.addEventListener('click', () => setAuto(!autoOn));
+
+/* ---------------- resize ---------------- */
+window.addEventListener('resize', () => {
+  camera.aspect = window.innerWidth / window.innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(window.innerWidth, window.innerHeight);
+  composer.setSize(window.innerWidth, window.innerHeight);
+  bloom.setSize(window.innerWidth, window.innerHeight);
+});
+
+/* ---------------- render loop ---------------- */
+const lookTarget = new THREE.Vector3(0,0.6,0);
+let idleT = 0;
+
+function animate(){
+  requestAnimationFrame(animate);
+
+  smoothProgress += (targetProgress - smoothProgress) * 0.08;
+
+  // camera (on narrow/portrait screens, pull back + widen so the whole car fits)
+  const cf = cameraForProgress(smoothProgress);
+  camera.position.set(cf.pos[0], cf.pos[1], cf.pos[2]);
+  lookTarget.set(cf.look[0], cf.look[1], cf.look[2]);
+  const sess = Math.min(1.333, camera.aspect);           // 1.333 = desktop 4:3 baseline
+  const pull = 1 + (1.333 - sess) * 0.9;
+  const d = camera.position.clone().sub(lookTarget);
+  camera.position.addScaledVector(d.normalize(), d.length() * (pull - 1));
+  camera.fov = cf.fov * (1 + (1.333 - sess) * 0.22);
+  camera.lookAt(lookTarget);
+  camera.updateProjectionMatrix();
+
+  // car rotation tied directly to scroll + gentle idle spin
+  idleT += 0.0025;
+  const scrollSpin = smoothProgress * Math.PI * 2 * CONFIG.TOTAL_SPINS;
+  carGroup.rotation.y = CONFIG.INITIAL_ROT_Y + scrollSpin + Math.sin(idleT) * 0.02;
+
+  // ring subtle pulse
+  ring.material.opacity = 0.25 + Math.sin(idleT*2) * 0.06;
+  contactShadow.material.opacity = 0.6 + Math.sin(idleT*1.5) * 0.05;
+
+  // HUD
+  const pct = Math.round(smoothProgress * 100);
+  dialNum.textContent = pct;
+  dialArc.setAttribute('stroke-dashoffset', String(CIRC - (CIRC * smoothProgress)));
+  progressFill.style.height = pct + '%';
+  updateHudSection(smoothProgress);
+
+  composer.render();
+}
+animate();
+</script>
+</body>
+</html>
