@@ -1400,10 +1400,6 @@ function updateHudSection(p){
   hudSectionEl.innerHTML = current.replace('_', '<span>_') + '</span>';
 }
 
-window.addEventListener('scroll', () => {
-  targetProgress = getScrollProgress();
-}, { passive:true });
-
 /* ---------------- scroll reveal ---------------- */
 const revealObserver = new IntersectionObserver((entries) => {
   entries.forEach((entry) => {
@@ -1500,9 +1496,12 @@ const lookTarget = new THREE.Vector3(0,0.6,0);
 let idleT = 0;
 let carFitRadius = 0;   // set once the model has loaded
 
+// camera progress is read every frame (not from the scroll event) so it
+// works reliably on mobile, where scroll events get throttled or dropped
 function animate(){
   requestAnimationFrame(animate);
 
+  targetProgress = getScrollProgress();
   smoothProgress += (targetProgress - smoothProgress) * 0.08;
 
   // camera (=== original keyframe behavior, unchanged for desktop)
