@@ -6,7 +6,7 @@
 <title>PAVAN — F1 Model Showcase</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Great+Vibes&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Dancing+Script:wght@500&family=Great+Vibes&display=swap" rel="stylesheet">
 <style>
   :root{
     --asphalt:#0b0d10;
@@ -325,10 +325,7 @@
     transition:height 0.05s linear;
   }
 
-  #auto-toggle,#sound-toggle{
-    position:fixed;
-    right:26px;
-    z-index:30;
+  #auto-toggle,#sound-toggle,#car-toggle{
     padding:11px 18px;
     border:1px solid var(--hairline);
     background:rgba(10,11,14,0.62);
@@ -341,13 +338,42 @@
     cursor:pointer;
     transition:border-color 0.25s ease, color 0.25s ease, background 0.25s ease;
   }
-  #auto-toggle{ bottom:22px; }
-  #sound-toggle{ bottom:64px; }
-  #auto-toggle:hover,#sound-toggle:hover{ border-color:var(--f1red); color:var(--f1red); }
-  #auto-toggle.on,#sound-toggle.on{
+  .btn-row{
+    position:fixed;
+    right:26px;
+    bottom:22px;
+    z-index:30;
+    display:flex;
+    gap:10px;
+  }
+  #sound-toggle{
+    position:fixed;
+    right:26px;
+    bottom:64px;
+    z-index:30;
+  }
+  #auto-toggle:hover,#sound-toggle:hover,#car-toggle:hover{ border-color:var(--f1red); color:var(--f1red); }
+  #auto-toggle.on,#sound-toggle.on,#car-toggle.on{
     background:var(--f1red);
     border-color:var(--f1red);
     color:#fff;
+  }
+  /* Ferrari (2nd car) active → whole site highlight type goes handwritten:
+     loader name, hero, and every scrolling-page heading share the Ferrari 1st-page font */
+  body.car-script .hero-name{
+    font-family:'Dancing Script','Great Vibes',cursive;
+    font-weight:500;
+    font-size:clamp(64px, 14vw, 176px);
+    letter-spacing:0.02em;
+  }
+  body.car-script .section-content h2{
+    font-family:'Dancing Script','Great Vibes',cursive;
+    font-weight:500;
+    font-size:clamp(40px, 5.6vw, 82px);
+    line-height:1.02;
+    letter-spacing:0.02em;
+    text-transform:none;
+    max-width:18ch;
   }
 
   #loader{
@@ -372,9 +398,11 @@
     50%{transform:scale(1.045); opacity:1;}
   }
   #loader .loader-name{
-    font-family:'Great Vibes', 'Dancing Script', cursive;
-    font-size:clamp(48px, 9vw, 76px);
+    font-family:'Dancing Script','Great Vibes',cursive;
+    font-weight:500;
+    font-size:clamp(54px, 8.5vw, 80px);
     line-height:1;
+    letter-spacing:0.02em;
     color:var(--chalk);
     text-shadow:0 0 42px rgba(242,243,245,0.28);
   }
@@ -386,14 +414,16 @@
     #progress-rail{display:none;}
     .stats-grid{gap:22px; margin-top:30px;}
     .stat-item{min-width:38vw;}
-    #auto-toggle,#sound-toggle{right:16px; padding:10px 14px; font-size:10px;}
+    .btn-row{right:16px; gap:8px;}
+    #auto-toggle,#sound-toggle,#car-toggle{padding:10px 12px; font-size:10px;}
     .insta-handle{letter-spacing:0.12em;}
     .section-content p{max-width:100%;}
   }
 
   @media (max-width:420px){
-    #auto-toggle,#sound-toggle{left:16px; right:16px;}
-    #sound-toggle{bottom:70px;}
+    .btn-row{left:16px; right:16px;}
+    .btn-row #auto-toggle,.btn-row #car-toggle{flex:1;}
+    #sound-toggle{left:16px; right:16px; bottom:70px;}
     .stat-item{min-width:100%;}
     .stats-grid{gap:18px;}
   }
@@ -436,7 +466,10 @@
 
 <div id="progress-rail"><div id="progress-fill"></div></div>
 
+<div class="btn-row">
+<button id="car-toggle" type="button">CAR 2</button>
 <button id="auto-toggle" type="button">AUTO TOUR</button>
+</div>
 <button id="sound-toggle" type="button">MUTE</button>
 
 <audio id="tokyoSound" src="f1_web_car/assets/audio/tokyo_drift.mp3" preload="auto"></audio>
@@ -545,6 +578,7 @@ import { FilmPass } from 'three/addons/postprocessing/FilmPass.js';
    ========================================================= */
 const CONFIG = {
   MODEL_URL: "f1_web_car/assets/car.glb",   // clean car-only GLB (f1_2022_textured_studio.glb is a full studio scene, not just the car)
+  CAR_2_MODEL_URL: "https://raw.githubusercontent.com/mrdoob/three.js/dev/examples/models/gltf/ferrari.glb", // 2nd car (from pavan-f1-site.html) — desktop toggle / mobile default
   MODEL_SCALE_FIT: 3.6,       // target size (world units) the car is scaled to fit
   TOTAL_SPINS: 2.4,           // full rotations across the entire scroll
   INITIAL_ROT_Y: 0,           // extra fixed rotation if the model faces away
@@ -1173,10 +1207,13 @@ dracoLoader.setDecoderPath('https://unpkg.com/three@0.160.0/examples/jsm/libs/dr
 const gltfLoader = new GLTFLoader();
 gltfLoader.setDRACOLoader(dracoLoader);
 
-let carRoot = null;
+let carRoot = null;   // transient: F1 root while its decals are attached
+let s_mode = 'A';     // material tuning mode: 'A' = F1 livery, 'B' = Ferrari
 
 function setModelLoadingText(t){
-  document.querySelector('#loader .loader-text').textContent = t;
+  const el = document.querySelector('#loader .loader-text');
+  if (el) el.textContent = t;
+  else console.warn(t);
 }
 
 /* Per-part material tuning — this is where "toy" dies.
@@ -1285,6 +1322,24 @@ function refineMaterial(m, nodeName){
     m.envMapIntensity = 1.3;
     if (!/led|stickers|screen/.test(nodeK)) m.color.setHex(0x07090c);
   }
+
+  // Ferrari (2nd car): stray mid-grey parts read as washed-out plastic on
+  // this GLB — snap any low-saturation mid-tone to deep carbon black so the
+  // car keeps its red paint but every grey blob turns gloss-black alloy.
+  if (s_mode === 'B' && !m.transparent){
+    const hsl = { h:0, s:0, l:0 };
+    m.color.getHSL(hsl);
+    const isGray = hsl.s < 0.14 && hsl.l >= 0.15 && hsl.l <= 0.82;
+    if (isGray){
+      m.color.setHex(0x101216);
+      m.metalness = Math.max(m.metalness, 0.55);
+      m.roughness = 0.35;
+      m.clearcoat = isCarbon ? 0.3 : 0.45;
+      m.envMapIntensity = 0.9;
+      m.userData = m.userData || {};
+      m.userData.liveryTag = null;
+    }
+  }
   return m;
 }
 
@@ -1299,55 +1354,106 @@ function upscaleMaterials(root){
   });
 }
 
-gltfLoader.load(
-  CONFIG.MODEL_URL,
-  (gltf) => {
-    carRoot = gltf.scene;
-    upscaleMaterials(carRoot);
-    if (CONFIG.STRIP_STAGE_PROPS) stripStageProps(carRoot);
+/* ---- two-car support ----
+   'A' = the F1 (local car.glb, sponsor decals + livery)
+   'B' = the Ferrari (from pavan-f1-site.html, remote URL)
+   Desktop: starts on A, CAR 2 button lazily loads & swaps to B.
+   Mobile:  starts on B, no toggle (single car → no lag). */
+function configureCar(root, decorate){
+  s_mode = decorate ? 'A' : 'B';
+  upscaleMaterials(root);
+  if (CONFIG.STRIP_STAGE_PROPS) stripStageProps(root);
 
-    // auto-fit: center + scale to target size
-    const box = new THREE.Box3().setFromObject(carRoot);
-    const size = new THREE.Vector3();
-    box.getSize(size);
-    const center = new THREE.Vector3();
-    box.getCenter(center);
+  // auto-fit: center + scale to target size
+  const box = new THREE.Box3().setFromObject(root);
+  const size = new THREE.Vector3();
+  box.getSize(size);
+  const center = new THREE.Vector3();
+  box.getCenter(center);
 
-    const maxDim = Math.max(size.x, size.y, size.z);
-    const scale = CONFIG.MODEL_SCALE_FIT / maxDim;
-    carRoot.scale.setScalar(scale);
+  const maxDim = Math.max(size.x, size.y, size.z);
+  const scale = CONFIG.MODEL_SCALE_FIT / maxDim;
+  root.scale.setScalar(scale);
 
-    // re-measure after scaling to re-center properly
-    const box2 = new THREE.Box3().setFromObject(carRoot);
-    const center2 = new THREE.Vector3();
-    box2.getCenter(center2);
-    carRoot.position.sub(center2);
-    // sit on the floor
-    carRoot.position.y -= box2.min.y - center2.y;
+  // re-measure after scaling to re-center properly
+  const box2 = new THREE.Box3().setFromObject(root);
+  const center2 = new THREE.Vector3();
+  box2.getCenter(center2);
+  root.position.sub(center2);
+  // sit on the floor
+  root.position.y -= box2.min.y - center2.y;
 
-    carGroup.add(carRoot);
-    applyLiveryTextures(carRoot);
-    addSponsorDecals(carRoot);
-
-    // bounding sphere of the whole car (world space) — used on narrow
-    // screens to guarantee the car fits on screen at every scroll frame
-    const fitSphere = new THREE.Sphere();
-    box2.getBoundingSphere(fitSphere);
-    carFitRadius = fitSphere.radius;
-
-    loaderEl.style.opacity = '0';
-    setTimeout(() => loaderEl.style.display = 'none', 650);
-  },
-  (xhr) => {
-    if (xhr.total) {
-      const pct = Math.min(100, Math.round((xhr.loaded / xhr.total) * 100));
-    }
-  },
-  (err) => {
-    console.error('Model failed to load:', err);
-    setModelLoadingText('MODEL FAILED — SEE CONSOLE / SAME FOLDER');
+  if (decorate){
+    carRoot = root;                 // decal helper reads carRoot.matrixWorld
+    applyLiveryTextures(root);
+    addSponsorDecals(root);
   }
-);
+
+  const fitSphere = new THREE.Sphere();
+  box2.getBoundingSphere(fitSphere);
+  return { root, radius: fitSphere.radius };
+}
+
+const carStates = {};       // key -> {root, radius}
+let activeCar = null;
+let activeRoot = null;
+
+function showLoader(){
+  loaderEl.style.display = 'flex';
+  loaderEl.style.opacity = '1';
+}
+function hideLoader(){
+  loaderEl.style.opacity = '0';
+  setTimeout(() => { loaderEl.style.display = 'none'; }, 650);
+}
+
+function activateCar(key){
+  const s = carStates[key];
+  if (!s) return;
+  if (activeRoot) carGroup.remove(activeRoot);
+  activeRoot = s.root;
+  carGroup.add(activeRoot);
+  activeCar = key;
+  carFitRadius = s.radius;          // portrait fit recomputed for the active car
+  document.body.classList.toggle('car-script', key === 'B');
+}
+
+function ensureCar(key, cb){
+  if (carStates[key]) return cb();
+  const url = key === 'B' ? CONFIG.CAR_2_MODEL_URL : CONFIG.MODEL_URL;
+  const decorate = key === 'A';
+  if (key === 'B') showLoader();    // lazy second-car load shows the logo loader
+  gltfLoader.load(
+    url,
+    (gltf) => {
+      carStates[key] = configureCar(gltf.scene, decorate);
+      hideLoader();
+      cb();
+    },
+    () => {},
+    (err) => {
+      console.error('Model failed to load:', err);
+      if (key === 'B'){
+        // remote Ferrari unreachable — fall back to the local F1 so the
+        // scene is never empty (offline / blocked CDN phone scenario)
+        if (carStates.A){ activateCar('A'); hideLoader(); }
+        else ensureCar('A', () => { activateCar('A'); hideLoader(); });
+      } else {
+        hideLoader();
+        setModelLoadingText('MODEL FAILED — SEE CONSOLE / SAME FOLDER');
+      }
+    }
+  );
+}
+
+// initial car: Ferrari on phones, F1 on desktop
+const initialKey = MOBILE_UI ? 'B' : 'A';
+document.body.classList.toggle('car-script', initialKey === 'B');
+ensureCar(initialKey, () => { activateCar(initialKey); hideLoader(); });
+
+// background-preload the other car so CAR 2/AUTO-TOUR switching is instant
+const otherKey = initialKey === 'A' ? 'B' : 'A';
+ensureCar(otherKey, () => {});
 
 /* ---------------- camera path across scroll ---------------- */
 // keyframes: progress 0..1 -> camera position + lookAt + fov
@@ -1449,6 +1555,13 @@ function toggleMute(){
   }
 }
 soundToggle.addEventListener('click', toggleMute);
+
+/* ---------------- car selector switch (desktop only) ---------------- */
+const carToggle = document.getElementById('car-toggle');
+carToggle.addEventListener('click', () => {
+  const target = activeCar === 'A' ? 'B' : 'A';
+  ensureCar(target, () => activateCar(target));
+});
 
 /* ---------------- auto tourist mode ---------------- */
 const AUTO_DURATION = 34000;
